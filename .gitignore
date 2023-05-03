@@ -1,4 +1,5 @@
 *.zip
 *.log
 *.json
+*.pyc
 .venv/

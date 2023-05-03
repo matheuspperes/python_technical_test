@@ -25,7 +25,7 @@ def get_driver():
         return None
 
 
-class JKRowling:
+class BotJKRowling:
     def __init__(self):
         self.waits = Waits()
                        

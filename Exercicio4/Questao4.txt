@@ -1,9 +1,11 @@
-# file path =com\teste\conector\ftp\ctr\Monitorar.class
-#
-# linha 65 
-# host = "52.200.142.116"
-# user = "ctflteste"
-# password = "YdrTXPK#mcG7KU" (+ linha 80)
+// file path = com\teste\conector\ftp\ctr\Monitorar.class
+// 
+// Usando descompilador JD-GUI
+// 
+// linha 65 
+// host = "52.200.142.116"
+// user = "ctflteste"
+// password = "YdrTXPK#mcG7KU" (+ linha 80)
 
 package com.teste.conector.ftp.ctr;
 

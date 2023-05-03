@@ -1,4 +1,4 @@
-from robot.robot import JKRowling
+from robot.robot import BotJKRowling
 from pathlib import Path
 import logging
 import json
@@ -12,7 +12,7 @@ logging.basicConfig(filename="app6.log", level=logging.INFO,
 class StartBot:
     def __init__(self):
         self.driver = None
-        self.bot = JKRowling()
+        self.bot = BotJKRowling()
         self.final_data = {}
         
     def start(self):
@@ -21,6 +21,8 @@ class StartBot:
             logging.error(driver["type"])
             raise Exception(driver["type"])
         self.driver = driver['driver']
+        
+        logging.info("Starting process...")
         
         author_info = self.bot.author_extraction(self.driver)
         if author_info['error']:

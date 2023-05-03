@@ -47,8 +47,9 @@ class MySpider(scrapy.Spider):
 
     def login_page(self, response):
         if response.status != 200:
-            logging.error(f"Error entering site | status: {response.status}")
-            raise Exception(f"Error entering site | status: {response.status}")
+            error = f"Error entering site | status: {response.status}"
+            logging.error(error)
+            raise Exception(error)
         
         form_data = {
             'usuario': "juliano@farmaprevonline.com.br",
@@ -64,8 +65,9 @@ class MySpider(scrapy.Spider):
 
     def initial_page(self, response):
         if response.status != 200:
-            logging.error(f"Login error | status: {response.status}")
-            raise Exception(f"Login error | status: {response.status}")
+            error = f"Login error | status: {response.status}"
+            logging.error(error)
+            raise Exception(error)
         
         logging.info("Login successful")
         session_cookie = response.headers.getlist('Set-Cookie')[0].decode('utf-8').replace("sessiontoken=", "")
@@ -96,8 +98,9 @@ class MySpider(scrapy.Spider):
     
     def my_orderedes_page(self, response):
         if response.status != 200:
-            logging.error(f"Error getting 'Meus Pedidos' page | status: {response.status}")
-            raise Exception(f"Error getting 'Meus Pedidos' page | status: {response.status}")
+            error = f"Error getting 'Meus Pedidos' page | status: {response.status}"
+            logging.error(error)
+            raise Exception(error)
         
         yield scrapy.Request(
             url=self.start_urls[3],
@@ -107,8 +110,9 @@ class MySpider(scrapy.Spider):
         
     def ordered_details_page(self, response):
         if response.status != 200:
-            logging.error(f"Error getting ordered details page | status: {response.status}")
-            raise Exception(f"Error getting ordered details page | status: {response.status}")
+            error = f"Error getting ordered details page | status: {response.status}"
+            logging.error(error)
+            raise Exception(error)
         
         final_data = {'motivo': '', 'itens':[]}
         body = json.loads(response.body)
@@ -126,12 +130,10 @@ class MySpider(scrapy.Spider):
             
         logging.info("Process completed")
             
-        print("\n")
-        print(final_data)
-        print("\n")
-        # print(body, '\n')
-        # print(body['lista'])
+        path = str(Path(base_path, "final_json.json"))
+        with open(path, "w") as f:
+            f.write(str(json.dumps(final_data)))
 
-process = CrawlerProcess()
-process.crawl(MySpider)
-process.start()
+# process = CrawlerProcess()
+# process.crawl(MySpider)
+# process.start()

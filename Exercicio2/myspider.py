@@ -1,4 +1,17 @@
 import scrapy
+import json
+import logging
+import jwt
+import re
+from pathlib import Path
+from sys import argv
+
+base_path = Path(__file__).parent.parent
+log_path = Path(base_path, "app2.log")
+
+# Configuração do registro
+logging.basicConfig(filename=log_path, level=logging.INFO,
+                    format='%(asctime)s| [%(levelname)s]: %(message)s')
 
 class MySpider(scrapy.Spider):
     name = "myspider"
@@ -34,17 +47,24 @@ class MySpider(scrapy.Spider):
     start_urls = [
         "https://pedidoeletronico.servimed.com.br/",
         "https://peapi.servimed.com.br/api/usuario/login",
-        "https://peapi.servimed.com.br/api/Pedido"
+        "https://peapi.servimed.com.br/api/Pedido",
+        "https://peapi.servimed.com.br/api/Pedido/ObterTodasInformacoesPedidoPendentePorId/511082"
     ]
 
     def start_requests(self):
+        logging.info("Starting process...")
         yield scrapy.Request(
             url=self.start_urls[0],
             headers=self.header,
-            callback=self.parse_page1
+            callback=self.login_page
         )
 
-    def parse_page1(self, response):
+    def login_page(self, response):
+        if response.status != 200:
+            error = f"Error entering site | status: {response.status}"
+            logging.error(error)
+            raise Exception(error)
+        
         form_data = {
             'usuario': "juliano@farmaprevonline.com.br",
             'senha': "a007299A"
@@ -54,18 +74,25 @@ class MySpider(scrapy.Spider):
             url=self.start_urls[1],
             headers=self.header,
             formdata=form_data,
-            callback=self.parse_page2
+            callback=self.initial_page
         )
 
-    def parse_page2(self, response):
-        print(response.headers)
-        session_cookie = response.headers
-        print(response.headers)
+    def initial_page(self, response):
+        if response.status != 200:
+            error = f"Login error | status: {response.status}"
+            logging.error(error)
+            raise Exception(error)
+        
+        logging.info("Login successful")
+        session_cookie = response.headers.getlist('Set-Cookie')[0].decode('utf-8').replace("sessiontoken=", "")
+        session_cookie = re.search(r'[^;]*', session_cookie).group()
+        code = jwt.decode(session_cookie, options={"verify_signature": False})
+        self.access_token = code["token"]
         
         form_data = {
             "dataInicio":"",
             "dataFim":"",
-            "filtro":"",
+            "filtro":f"{str(argv[1])}",
             "pagina":"1",
             "registrosPorPagina":"10",
             "codigoExterno":"267511",
@@ -74,34 +101,47 @@ class MySpider(scrapy.Spider):
             "users":["267511","518565"]
         }
         
-        yield scrapy.Request(
+        self.header['accesstoken'] = self.access_token, 
+        yield scrapy.FormRequest(
             url=self.start_urls[2],
-            # formdata=form_data,
+            formdata=form_data,
             headers=self.header,
-            cookies={
-                'session': session_cookie,
-            },
-            callback=self.parse_page3
+            callback=self.my_orderedes_page
         )
     
-    def parse_page3(self, response):
-        print("status: ", response.status)
-        # parse the response from the first URL
-        print("response: ", response.text)
-        ...
-
-    # def after_login(self, response):
-    #     # click a button to access the dashboard
-    #     yield scrapy.FormRequest(
-    #         url=""
-    #         formdata = {
-    #         'usuario': "juliano@farmaprevonline.com.br",
-    #         'senha': "a007299A"
-    #         },
-    #         callback=self.after_dashboard
-    #     )
-
-    # def after_dashboard(self, response):
-    #     # do something after accessing the dashboard, such as extract data
-    #     data = response.xpath('//title/text()').get()
-    #     print(data)
+    def my_orderedes_page(self, response):
+        if response.status != 200:
+            error = f"Error getting 'Meus Pedidos' page | status: {response.status}"
+            logging.error(error)
+            raise Exception(error)
+        
+        yield scrapy.Request(
+            url=self.start_urls[3],
+            headers=self.header,
+            callback=self.ordered_details_page
+        )
+        
+    def ordered_details_page(self, response):
+        if response.status != 200:
+            error = f"Error getting ordered details page | status: {response.status}"
+            logging.error(error)
+            raise Exception(error)
+        
+        final_data = {'motivo': '', 'itens':[]}
+        body = json.loads(response.body)
+        
+        final_data['motivo'] = str(body['rejeicao']).strip()
+        
+        itens = body['itens']
+        for index in range(len(itens)):
+            product = {}
+            product['codigo_produto'] = int(str(itens[index]['produto']['id']).strip())
+            product['descricao'] = str(itens[index]['produto']['descricao']).strip()
+            product['quantidade_faturada'] = itens[index]['quantidadeFaturada']
+            
+            final_data["itens"].append(product)
+            
+        logging.info("Process completed")
+            
+        with open("final_json_python.json", "w") as f:
+            f.write(str(json.dumps(final_data)))
