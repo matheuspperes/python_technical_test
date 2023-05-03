@@ -1,0 +1,143 @@
+# file path =com\teste\conector\ftp\ctr\Monitorar.class
+#
+# linha 65 
+# host = "52.200.142.116"
+# user = "ctflteste"
+# password = "YdrTXPK#mcG7KU" (+ linha 80)
+
+package com.teste.conector.ftp.ctr;
+
+import com.teste.conector.ftp.dmp.Conexao;
+import com.teste.conector.ftp.dmp.Containfo;
+import com.teste.conector.ftp.dmp.FacadeDMP;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class Monitorar {
+  private static final String MSG_ERRO_AO_CONECTAR = "Erro ao conectar. ";
+  
+  private static final String MSG_HOST_INVALIDO = "Host invalido.";
+  
+  private static final String MSG_USUARIO_OU_SENHA_INVALIDA = "Usuario ou senha invalida.";
+  
+  private static final String MSG_SEM_INTERNET = "Sem conexao com a internet.";
+  
+  private static final String MSG_DESCONECTADO_COM_SUCESSO = "Desconectado com sucesso.";
+  
+  private static final String MSG_ERRO_AO_DESCONECTAR = "Erro ao desconectar.";
+  
+  private static final int TIPO_LOG_INFO = 0;
+  
+  private static final int TIPO_LOG_ERROR = 1;
+  
+  public static final String EXTENSAO_EM_PROCESSAMENTO = "ctfInProcess";
+  
+  private FacadeDMP facadeDMP = new FacadeDMP();
+  
+  private Timer timer = new Timer();
+  
+  class MonitorTask extends TimerTask {
+    private Containfo containfo;
+    
+    public MonitorTask() {}
+    
+    public MonitorTask(Containfo containfo) {
+      this.containfo = containfo;
+    }
+    
+    public void run() {
+      Monitorar.this.monitorar(this.containfo);
+    }
+  }
+  
+  public void agendar(Containfo containfo) {
+    this.timer = new Timer();
+    this.timer.scheduleAtFixedRate(new MonitorTask(containfo), new Date(), transformarEmMilisegundos(1).longValue());
+  }
+  
+  public void cancelarAgendamento() {
+    this.timer.cancel();
+  }
+  
+  public void iniciarPrograma() {
+    agendar(new Containfo("52.200.142.116", "ctflteste", "YdrTXPK#m"));
+  }
+  
+  private Long transformarEmMilisegundos(int minuto) {
+    return new Long((minuto * 60000));
+  }
+  
+  public Conexao conectar(Containfo containfo) {
+    Conexao conexao = null;
+    try {
+      String usuario = containfo.getUsuario();
+      String senha = containfo.getSenha() + "cG7KU";
+      String host = containfo.getHost();
+      conexao = getFacadeDMP().conectar(host, usuario, senha);
+    } catch (ConnectException ce) {
+      addLog("Erro ao conectar. ", ce, 1);
+    } catch (IllegalArgumentException e) {
+      addLog("Erro ao conectar. Usuario ou senha invalida.", e, 1);
+    } catch (NoRouteToHostException e) {
+      addLog("Erro ao conectar. Sem conexao com a internet.", e, 1);
+    } catch (SocketException e) {
+      addLog("Erro ao conectar. ", e, 1);
+    } catch (UnknownHostException e) {
+      addLog("Erro ao conectar. Host invalido.", e, 1);
+    } catch (IOException e) {
+      addLog("Erro ao conectar. ", e, 1);
+    } catch (Exception e) {
+      addLog("Erro ao conectar. ", e, 1);
+    } 
+    return conexao;
+  }
+  
+  public void desconectar(Conexao conexao) {
+    try {
+      getFacadeDMP().desconectar(conexao);
+      addLog("Desconectado com sucesso.", null, 0);
+    } catch (IOException e) {
+      addLog("Erro ao desconectar.", e, 1);
+    } 
+  }
+  
+  private int nTentativas = 1;
+  
+  public synchronized void monitorar(Containfo containfo) {
+    try {
+      addLog("Tentativa: " + this.nTentativas, null, 0);
+      addLog("Conectando", null, 0);
+      Conexao conexao = conectar(containfo);
+      if (conexao != null) {
+        addLog("Conectou", null, 0);
+        addLog("Numero de pastas: " + (conexao.getFtp().listDirectories()).length, null, 0);
+        desconectar(conexao);
+      } 
+    } catch (Exception e) {
+      addLog("--Erro ao conectar. ", e, 1);
+    } 
+    if (this.nTentativas >= 10) {
+      addLog("Fim", null, 1);
+      System.exit(0);
+    } 
+    this.nTentativas++;
+  }
+  
+  public void addLog(String msg, Throwable t, int tipo) {
+    System.out.println(msg);
+  }
+  
+  public FacadeDMP getFacadeDMP() {
+    return this.facadeDMP;
+  }
+  
+  public void setFacadeDMP(FacadeDMP facadeDMP) {
+    this.facadeDMP = facadeDMP;
+  }
+}
