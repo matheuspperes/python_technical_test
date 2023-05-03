@@ -16,8 +16,8 @@ logging.basicConfig(filename=log_path, level=logging.INFO,
 
 class MySpider(scrapy.Spider):
     name = "bot_compra_agora"
-    final_data = {}
-    index = None
+    final_data = []
+    category = None
     number_page = 0
         
     header = {
@@ -71,56 +71,63 @@ class MySpider(scrapy.Spider):
             logging.error(error)
             raise Exception(error)
         
+        print('ok')
+        
         
         all_href = response.css("li[class='lista-menu-itens'] a::attr(href)").getall()
-        if self.index is None:
-            self.index = 0
+        if self.category is None:
+            self.category = 0
+        elif self.category > len(all_href):
+            print(self.final_data)
+            print(len(self.final_data))
+            logging.info("Process completed")
+            return
         
-        category = all_href[self.index].split("/")[4]
+        category = all_href[self.category].split("/")[4]
+        logging.info(f"Extracting items from |{category}|")
         print(category)
         
-        all_href[self.index] = all_href[self.index] + f"?ordenacao=0&filtro_principal=p&limit=24&p={self.number_page}"
+        all_href[self.category] = all_href[self.category] + f"?ordenacao=0&filtro_principal=p&limit=24&p={self.number_page}"
         
-        yield scrapy.Request(
-            url=all_href[self.index],
+        self.crawler.engine.crawl(scrapy.Request(
+            url=all_href[self.category],
             callback=self.extract_data
-        )
-        
-        # for url in all_href:
-        #     self.stop = False
-        #     category = url.split("/")[4]
-        #     print(category)
-        #     # counter = 0
-            
-        #     url = url + f"?ordenacao=0&filtro_principal=p&limit=24&p="
-        #     for counter in range(1, 20):
-        #         if self.stop:
-        #             break
-        #         # counter += 1     
-        #         url_category = f"{url}{counter}"           
-                
-        #         request = SplashRequest (
-        #             url=url_category,
-        #             callback=self.extract_data,
-        #             # endpoint='render.html',
-        #             # args={"wait": 5}
-        #         )
-                
+        ))                
     
     def extract_data(self, response):
         if response.status != 200:
-            error = f"category error | status: {response.status}"
+            error = f"category page error | status: {response.status}"
             logging.error(error)
             # self.stop = True
             raise Exception(error)
         
-        products = response.css("div[class='box-produto box-catalago box-catalago-vitrine  ']").getall()
+        products = response.css("div[class='box-produto box-catalago box-catalago-vitrine  ']")
         if len(products) == 0:
-            # self.stop = True
-            print("0")
+            self.category += 10
+            logging.info("Extracted data")
             return
         print(len(products))
         
+        for product in products:
+            brand = str(product.css("a[class='produto-marca mb-1']::text").get()).strip()
+            description = str(product.css("a[class='produto-nome mb-1']::text").get()).strip()
+            img = str(product.css("figure img::attr(data-src)").get()).strip()
+            
+            self.final_data.append({
+                'descricao': description,
+                'fabricante': brand,
+                'imagem_url': img
+            })
+        
+        self.number_page += 1
+        response = scrapy.Request(
+            url=self.start_urls[1],
+            callback=self.count_categories
+        )
+        yield response
+        
+    def teste(self, response):
+        print('ok')
         # print(len(products))
         
         
