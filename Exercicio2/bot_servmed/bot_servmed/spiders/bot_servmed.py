@@ -130,7 +130,7 @@ class MySpider(scrapy.Spider):
             
         logging.info("Process completed")
             
-        path = str(Path(base_path, "final_json.json"))
+        path = str(Path(base_path, "final_data.json"))
         with open(path, "w") as f:
             f.write(str(json.dumps(final_data)))
 

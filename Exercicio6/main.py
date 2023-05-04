@@ -48,7 +48,7 @@ class StartBot:
         
         self.driver.quit()
         
-        path = str(Path(base_path, "Exercicio4", "final_json.json"))
+        path = str(Path(base_path, "Exercicio6", "final_data.json"))
         with open(path, "w") as f:
             f.write(str(json.dumps(self.final_data)))
         

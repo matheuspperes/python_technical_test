@@ -1,0 +1,8 @@
+Os 3 exemplos são elementos fundamentais da infraestrutura da AWS para regrar,
+proteger e estabelecer uma segurança configurável em uma rede virtual privada.
+
+Uma VPN é um tipo de conexão segura entre máquinas de uma rede privada que podem
+ser ajustadas com subnets que agrupamento e segmentação para fins de organização e regras
+
+Security Groups fornecem uma forma eficiente de atribuir acesso aos recursos
+na sua rede baseado no tráfego em portas específicas e predeterminadas

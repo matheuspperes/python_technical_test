@@ -143,5 +143,5 @@ class MySpider(scrapy.Spider):
             
         logging.info("Process completed")
             
-        with open("final_json_python.json", "w") as f:
+        with open("final_data_python.json", "w") as f:
             f.write(str(json.dumps(final_data)))

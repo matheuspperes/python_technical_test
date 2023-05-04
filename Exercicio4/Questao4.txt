@@ -1,6 +1,6 @@
 // file path = com\teste\conector\ftp\ctr\Monitorar.class
 // 
-// Usando descompilador JD-GUI
+// Usado descompilador JD-GUI
 // 
 // linha 65 
 // host = "52.200.142.116"

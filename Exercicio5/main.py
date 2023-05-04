@@ -13,13 +13,13 @@ class Tree:
     def __init__(self, root=None):
         self.root = root
         
-    def add_node(self, parent_node, child_node):
-        parent_node.add_child(child_node)
+    def add_node(self, parent_node, child_node):    # function to add node as child
+        parent_node.add_child(child_node)         
         
-    def traverse_pre_order(self, node, output):
-        output.append(node.value)
+    def traverse_pre_order(self, node, output):     
+        output.append(node.value)                   
         for child in node.children:
-            self.traverse_pre_order(child, output) 
+            self.traverse_pre_order(child, output)  # Recursively call the function method with each child of current node after appending node
     
 class TestTree(unittest.TestCase):
     def setUp(self):
@@ -42,13 +42,16 @@ class TestTree(unittest.TestCase):
 
     def test_add_node(self):
         # test adding a node6 to the tree
-        new_node = Node(6)
-        self.tree.add_node(self.grandchild1, new_node)
-        self.assertEqual(self.grandchild1.children[0].value, 6)
+        new_node = Node(6)                                      # creates node with value 6
+        self.tree.add_node(self.grandchild1, new_node)          # add node6 as child of node4
+        self.assertEqual(self.grandchild1.children[0].value, 6) # assert node6 just added
+        
+        # 1 -> 2 -> 4 -> 6
+        #   -> 3 -> 5
 
     def test_traverse_pre_order(self):
         # test pre-order traversal
-        expected_output = [1, 2, 4, 3, 5]
+        expected_output = [1, 2, 4, 3, 5]               # expected value after traversal order function following node sequence
         output = []
         self.tree.traverse_pre_order(self.root, output)
         self.assertEqual(output, expected_output)
