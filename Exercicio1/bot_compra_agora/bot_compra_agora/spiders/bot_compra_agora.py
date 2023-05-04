@@ -4,10 +4,9 @@ import scrapy
 import json
 
 base_path = Path(__file__).parent.parent
-log_path = Path(base_path, "app1.log")
 
 # Configuração do registro
-logging.basicConfig(filename=log_path, level=logging.INFO,
+logging.basicConfig(filename="ex1.log", level=logging.INFO,
                     format='%(asctime)s| [%(levelname)s]: %(message)s')
 
 class MySpider(scrapy.Spider):

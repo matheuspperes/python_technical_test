@@ -3,13 +3,10 @@ import logging
 import json
 import time
 from constants import *
-from pathlib import Path
 
-base_path = str(Path(__file__).parent.parent)
-log_path = Path(base_path, "Exercicio3", "app3.log")
 
 # Configuração do registro
-logging.basicConfig(filename=log_path, level=logging.INFO,
+logging.basicConfig(filename="ex3.log", level=logging.INFO,
                     format='%(asctime)s| [%(levelname)s]: %(message)s')
 
 number_timestamp = int(time.time())

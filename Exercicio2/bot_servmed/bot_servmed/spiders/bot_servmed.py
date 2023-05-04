@@ -7,10 +7,9 @@ import jwt
 import re
 
 base_path = Path(__file__).parent.parent
-log_path = Path(base_path, "app2.log")
 
 # Configuração do registro
-logging.basicConfig(filename=log_path, level=logging.INFO,
+logging.basicConfig(filename="ex2.log", level=logging.INFO,
                     format='%(asctime)s| [%(levelname)s]: %(message)s')
 
 class MySpider(scrapy.Spider):

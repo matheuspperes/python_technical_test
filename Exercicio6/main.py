@@ -4,9 +4,8 @@ import logging
 import json
 
 base_path = str(Path(__file__).parent.parent)
-log_path = Path(base_path, "Exercicio6", "app6.log")
 
-logging.basicConfig(filename="app6.log", level=logging.INFO,
+logging.basicConfig(filename="ex6.log", level=logging.INFO,
                     format='%(asctime)s | [%(levelname)s]: %(message)s')
 
 class StartBot:
